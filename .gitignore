@@ -1,0 +1,31 @@
+# General OS files
+.DS_Store
+Thumbs.db
+
+# Python virtual environment
+venv/
+.env
+*.pyc
+__pycache__/
+db.sqlite3
+
+# Django logs and migrations (optional)
+*.log
+*.pot
+*.pyc
+*.pyo
+*.swp
+migrations/
+
+# Node modules (React frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts (React)
+build/
+dist/
+
+# VSCode & JetBrains IDE settings (optional)
+.vscode/
+.idea/
