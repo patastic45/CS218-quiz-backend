@@ -15,7 +15,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.http import HttpResponse
+import logging
 
 
 from django.contrib.auth.models import User
@@ -47,6 +48,7 @@ class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
+
 
     def create(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -153,3 +155,13 @@ class LogoutView(APIView):
             return Response({"message": "Logged out successfully"}, status=200)
         except Exception as e:
             return Response({"error": "Invalid token"}, status=400)
+
+
+def health_check(request):
+    return HttpResponse("OK", status=200)
+
+
+logger = logging.getLogger(__name__)
+
+def your_view(request):
+    logger.info("Request received for this endpoint.")

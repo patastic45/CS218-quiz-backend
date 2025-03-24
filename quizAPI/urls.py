@@ -18,11 +18,11 @@ router.register(r'quiz-collection-answers', views.QuizCollectionAnswerViewSet, b
 urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('', include(router.urls)),
-    path('register/', views.RegisterUserView.as_view(), name='register'),
+    path('api/register/', views.RegisterUserView.as_view(), name='register'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login (returns access & refresh tokens)
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Get new access token using refresh token
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),  # Verify if a token is valid
     path('api/logout/', views.LogoutView.as_view(), name='logout'),  # Custom logout view
-
+    path('health/', views.health_check),  # Path to the health check view
 
 ]

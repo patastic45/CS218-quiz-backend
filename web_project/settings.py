@@ -14,11 +14,57 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+import json
+import logging
 
-load_dotenv()  # Load environment variables from .env
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Set the level to DEBUG to capture all logs
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',  # Direct logs to stdout
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/gunicorn.log',  # Optionally, log to a file
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],  # Send logs to both console and file
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'gunicorn.error': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'gunicorn.access': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
+}
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+logger = logging.getLogger(__name__)
+
+dotenv_path = os.path.abspath("./.env") 
+load_dotenv(dotenv_path)  # Load environment variables from .env
+
+
+secret_str = os.getenv("SECRET_KEY")  # Get the raw secret string
+
+# Clean the secret string and parse it as JSON
+secrets = secret_str.strip('"')  # Remove surrounding quotes if present
+
+
+secrets = json.loads(secrets)  # Parse the cleaned string as JSON
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -26,13 +72,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k=mu2llgs06fc*$(z+tp68+*h&=6=_dr40wyp5+byw=%o*($i8'
+SECRET_KEY = secrets.get("SECRET_KEY", "your-default-secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "True"
+DEBUG = secrets.get("DEBUG") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = secrets.get("ALLOWED_HOSTS").split(",")
 
+print("Allowed hosts:", ALLOWED_HOSTS)
 
 # Application definition
 
@@ -110,14 +157,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": secrets.get("DB_NAME"),
+        "USER": secrets.get("DB_USER"),
+        "PASSWORD": secrets.get("DB_PASSWORD"),
+        "HOST": secrets.get("DB_HOST"),
+        "PORT": secrets.get("DB_PORT"),
     }
 }
-
+print("Database configuration:", DATABASES)
 # Other settings...
 
 
@@ -142,12 +189,21 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Allow React frontend
+CORS_ALLOWED_ORIGINS = secrets.get("CORS_ALLOWED").split(",")
+print("CORS_ALLOWED_ORIGINS:", CORS_ALLOWED_ORIGINS)
+CORS_ALLOWED_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",  # Ensure OPTIONS is included for preflight
 ]
 
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"] 
+
+CSRF_TRUSTED_ORIGINS = secrets.get("CSRF_ALLOWED").split(",") 
+
+print("CORS_ALLOWED_ORIGINS:", CORS_ALLOWED_ORIGINS)
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -170,6 +226,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 
 # quizAPI
 
